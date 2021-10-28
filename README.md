@@ -5,6 +5,19 @@ Python 3 port of the Berkeley Reinforcement Learning assignment. Original materi
 
 The code has been ported from python 2 to 3 with the 2to3 utilitary and some manual tweaks involving tk and integer division. Preliminary manual tests were ok, but some issues might still be there. Feedback and pull requests are welcome!
 
+# Table of contents
+
+ * [Introduction](#introduction)
+ * [MDPs](#mdps)
+ * [Question 1: Value Iteration](#question-1-value-iteration)
+ * [Question 2: Bridge Crossing Analysis](#question-2-bridge-crossing-analysis)
+ * [Question 3: Policies](#question-3-policies)
+ * [Question 4: Q-Learning](#question-4-q-Learning)
+ * [Question 5: Epsilon Greedy](#question-5-epsilon-greedy)
+ * [Question 6: Bridge Crossing Revisited](#question-6-bridge-crossing-revisited)
+ * [Question 7: Q-Learning and Pacman](#question-7-q-learning-and-pacman)
+ * [Question 8: Approximate Q-Learning](#question-8-approximate-q-Learning)
+
 # Introduction
 
 In this project, you will implement value iteration and Q-learning. You will test your agents first on Gridworld (from class), then apply them to a simulated robot controller (Crawler) and Pacman.
