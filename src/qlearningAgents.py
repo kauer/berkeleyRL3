@@ -15,6 +15,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
+import collections
 
 import random,util,math
 
@@ -42,7 +43,9 @@ class QLearningAgent(ReinforcementAgent):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
-        "*** YOUR CODE HERE ***"
+        # q will store a dict for each state, each dict is a
+        # Counter, which is a dict with a default of zero
+        self.q = collections.defaultdict(util.Counter)
 
     def getQValue(self, state, action):
         """
@@ -50,8 +53,7 @@ class QLearningAgent(ReinforcementAgent):
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.q[state][action]
 
 
     def computeValueFromQValues(self, state):
@@ -61,8 +63,11 @@ class QLearningAgent(ReinforcementAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # terminal state
+        if len(self.getLegalActions(state)) == 0:
+            return 0
+
+        return max([self.getQValue(state, action) for action in self.getLegalActions(state)])
 
     def computeActionFromQValues(self, state):
         """
@@ -70,8 +75,18 @@ class QLearningAgent(ReinforcementAgent):
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # terminal state
+        if len(self.getLegalActions(state)) == 0:
+            return None
+
+        # argmax over actions with random tie breaks
+        max_value = self.computeValueFromQValues(state)
+
+        max_actions = [
+            a for a in self.getLegalActions(state) if self.getQValue(state, a) == max_value
+        ]
+
+        return random.choice(max_actions)
 
     def getAction(self, state):
         """
@@ -87,8 +102,15 @@ class QLearningAgent(ReinforcementAgent):
         # Pick Action
         legalActions = self.getLegalActions(state)
         action = None
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        if len(legalActions) > 0:
+            # epsilon:
+            if random.random() < self.epsilon:
+                action = random.choice(legalActions)
+
+            # greedy:
+            else:
+                action = self.computeActionFromQValues(state)
 
         return action
 
@@ -101,8 +123,12 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # old_q = self.q[state][action]
+        self.q[state][action] += self.alpha * (
+            reward
+            + self.discount * self.computeValueFromQValues(nextState)
+            - self.q[state][action]
+        )
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
@@ -156,6 +182,10 @@ class ApproximateQAgent(PacmanQAgent):
         PacmanQAgent.__init__(self, **args)
         self.weights = util.Counter()
 
+        # random weight initialization
+        # for feature in self.featExtractor:
+        #    self.weights[feature] = random.random()
+
     def getWeights(self):
         return self.weights
 
@@ -164,15 +194,23 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return sum([
+            self.weights[fkey] * fvalue for fkey, fvalue in
+            self.featExtractor.getFeatures(state, action).items()
+        ])
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        old_q = self.getQValue(state, action)
+        td_error = reward + self.discount * self.computeValueFromQValues(nextState) - old_q
+
+        # getFeatures returns a dict mapping (state,action) -> number
+        features = self.featExtractor.getFeatures(state, action)
+        for f in features:
+            self.weights[f] += self.alpha * td_error * features[f]
 
     def final(self, state):
         "Called at the end of each game."
