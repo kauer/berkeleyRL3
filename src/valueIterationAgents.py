@@ -44,26 +44,33 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter() # A Counter is a dict with default 0
 
         for state in self.mdp.getStates():
-            self.values[state] = 0
+                self.values[state] = 0
 
-        states = self.values.keys()
         for it in range(iterations):
-            for state in states:
-                max = -math.inf
-                actions = self.mdp.getPossibleActions(state)
-
-                if(self.mdp.isTerminal(state)):
+            if(it==0):
+                for state in self.mdp.getStates():
                     self.values[state] = self.mdp.getReward(state, 0, 0)
-                else:
-                    for action in actions:
-                        sum = 0.0
-                        possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
-                        for next_state in possible_states:
-                            sum = sum + next_state[1] * (self.values[next_state[0]])
-                        if (sum > max):
-                            max = sum
+            else:
+                for state in self.mdp.getStates():
+                    print("INICIAL: " + str(self.values[state]))
+                    max = -math.inf
+                    actions = self.mdp.getPossibleActions(state)
 
-                    self.values[state] = self.mdp.getReward(state, 0, 0) + discount*max
+                    if(self.mdp.isTerminal(state)):
+                        print("TERMINAL: " + str(self.values[state]))
+                        self.values[state] = self.values[state]
+                    else:
+                        for action in actions:
+                            sum = 0.0
+                            possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
+                            for next_state in possible_states:
+                                sum = sum + next_state[1] * (self.values[next_state[0]])
+                            if (sum > max):
+                                max = sum
+
+                        print("MAX: " + str(max))
+                        self.values[state] = self.mdp.getReward(state, 0, 0) + discount*max
+                        print("FINAL: " + str(self.values[state]))
 
 
     def getValue(self, state):

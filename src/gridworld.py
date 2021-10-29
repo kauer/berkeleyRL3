@@ -86,11 +86,14 @@ class Gridworld(mdp.MarkovDecisionProcess):
         less use this convention).
         """
         if state == self.grid.terminalState:
+            ###print(0.0)
             return 0.0
         x, y = state
         cell = self.grid[x][y]
         if type(cell) == int or type(cell) == float:
+            ###print("CELL: " + str(cell))
             return cell
+        ###print("livingReward: " + str(self.livingReward))
         return self.livingReward
 
     def getStartState(self):
