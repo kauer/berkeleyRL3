@@ -12,10 +12,9 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-import mdp, util
-from learningAgents import ValueEstimationAgent
-import copy
+import mdp, util, math
 
+from learningAgents import ValueEstimationAgent
 
 class ValueIterationAgent(ValueEstimationAgent):
     """
@@ -26,7 +25,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         for a given number of iterations using the supplied
         discount factor.
     """
-    def __init__(self, mdp, discount=0.9, iterations=100):
+    def __init__(self, mdp, discount = 0.9, iterations = 100):
         """
           Your value iteration agent should take an mdp on
           construction, run the indicated number of iterations
@@ -42,23 +41,15 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = util.Counter()  # A Counter is a dict with default 0
+        self.values = util.Counter() # A Counter is a dict with default 0
 
-        for i in range(iterations):
-            old_v = copy.copy(self.values)
-            for state in self.mdp.getStates():
-                actions = self.mdp.getPossibleActions(state)
+        for state in self.mdp.getStates():
+            self.values[state] = 0
 
-                if len(actions) == 0:  # prevents error in max
-                    continue
+        """chaves = self.values.keys()
+        for it in range(iterations):
+            for chave in chaves:"""
 
-                self.values[state] = max([  # max over actions
-                    sum([  # sum over next states
-                        prob * (self.mdp.getReward(state, a, sprime) + discount * old_v[sprime])
-                        for (sprime,prob) in self.mdp.getTransitionStatesAndProbs(state, a)
-                    ])
-                    for a in actions
-                ])
 
     def getValue(self, state):
         """
@@ -66,19 +57,23 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         return self.values[state]
 
+
     def computeQValueFromValues(self, state, action):
         """
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        # aliases:
-        s = state
-        a = action
-        d = self.discount
-        return sum([
-            prob * (self.mdp.getReward(s, a, sprime) + d * self.values[sprime])
-            for (sprime, prob) in self.mdp.getTransitionStatesAndProbs(s, a)
-        ])
+
+        if (action == 'exit'):
+            possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
+            return self.mdp.getReward(state, action, possible_states[0][0])
+
+        sum = 0.0
+        possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
+        for next_state in possible_states:
+            sum = sum + next_state[1] * (self.values[next_state[0]])
+
+        return sum
 
     def computeActionFromValues(self, state):
         """
@@ -89,20 +84,22 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        possible_actions = self.mdp.getPossibleActions(state)
-        if len(possible_actions) == 0:
+        max = -math.inf
+        best_action = None
+        actions = self.mdp.getPossibleActions(state)
+        if(len(actions) == 0):
             return None
 
-        # performs the argmax (not very pythonic)
-        max_action = possible_actions[0]
-        max_q = self.computeQValueFromValues(state, possible_actions[0])
-        for action in self.mdp.getPossibleActions(state):
-            q = self.computeQValueFromValues(state, action)
-            if q > max_q:
-                max_action = action
-                max_q = q
+        for action in actions:
+            sum = 0.0
+            possible_states = self.mdp.getTransitionStatesAndProbs(state,action)
+            for next_state in possible_states:
+                sum = sum + next_state[1]*(self.values[next_state[0]])
+            if(sum > max):
+                max = sum
+                best_action = action
 
-        return max_action
+        return best_action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
