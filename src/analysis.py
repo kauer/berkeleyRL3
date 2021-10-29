@@ -21,12 +21,12 @@
 
 def question2():
     answerDiscount = 0.9
-    answerNoise = 0.01
+    answerNoise = 0.00
     return answerDiscount, answerNoise
 
 def question3a():
     # get the close reward, risking the cliff
-    answerDiscount = 0.1
+    answerDiscount = 0.3
     answerNoise = 0.0
     answerLivingReward = -.01
     return answerDiscount, answerNoise, answerLivingReward
