@@ -43,12 +43,37 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
-        for state in self.mdp.getStates():
-            self.values[state] = 0
+        #self.values.update(self.mdp.getStates())
+        for state in mdp.getStates():
+            self.values[state] = mdp.getReward(state, 0, 0)
 
-        """chaves = self.values.keys()
+        #for state in self.mdp.getStates():
+        #    self.values[state] = state
+
         for it in range(iterations):
-            for chave in chaves:"""
+            for state in mdp.getStates():
+                max = -math.inf
+                best_action = None
+                actions = self.mdp.getPossibleActions(state)
+
+                if(self.mdp.isTerminal(state)):
+                    #actions = mdp.getPossibleActions(state)
+                    #possible_states = self.mdp.getTransitionStatesAndProbs(state, actions[0])
+                    self.values[state] = 0.0
+                    continue
+                else:
+                    for action in actions:
+                        sum = 0.0
+                        possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
+                        currentStateReward = mdp.getReward(state, 0, 0)
+
+                        for next_state in possible_states:
+                            sum = sum + next_state[1] * self.values[next_state[0]]
+                        if (sum > max):
+                            max = sum
+                            best_action = action
+                    self.values[state] = currentStateReward+discount*max
+        chaves = self.values.keys()
 
 
     def getValue(self, state):
