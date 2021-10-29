@@ -46,9 +46,24 @@ class ValueIterationAgent(ValueEstimationAgent):
         for state in self.mdp.getStates():
             self.values[state] = 0
 
-        """chaves = self.values.keys()
+        states = self.values.keys()
         for it in range(iterations):
-            for chave in chaves:"""
+            for state in states:
+                max = -math.inf
+                actions = self.mdp.getPossibleActions(state)
+
+                if(self.mdp.isTerminal(state)):
+                    self.values[state] = self.mdp.getReward(state, 0, 0)
+                else:
+                    for action in actions:
+                        sum = 0.0
+                        possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
+                        for next_state in possible_states:
+                            sum = sum + next_state[1] * (self.values[next_state[0]])
+                        if (sum > max):
+                            max = sum
+
+                    self.values[state] = self.mdp.getReward(state, 0, 0) + discount*max
 
 
     def getValue(self, state):
