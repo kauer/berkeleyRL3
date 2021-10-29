@@ -44,17 +44,19 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter() # A Counter is a dict with default 0
 
         for state in self.mdp.getStates():
-                self.values[state] = 0
+            self.values[state] = 0.0
+            actions = self.mdp.getPossibleActions(state)
+            for action in actions:
+                self.values[state, action] = 0.0
 
         for it in range(iterations):
             new_values = util.Counter()
             for state in self.mdp.getStates():
                 max = -math.inf
-                actions = self.mdp.getPossibleActions(state)
-
                 if(self.mdp.isTerminal(state)):
                     self.values[state] = self.values[state]
                 else:
+                    actions = self.mdp.getPossibleActions(state)
                     for action in actions:
                         sum = 0.0
                         possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
@@ -62,10 +64,12 @@ class ValueIterationAgent(ValueEstimationAgent):
                             sum = sum + next_state[1] * (self.values[next_state[0]])
                         if (sum > max):
                             max = sum
-
                     new_values[state] = self.mdp.getReward(state, 0, 0) + discount*max
             for state in self.mdp.getStates():
                 self.values[state] = new_values[state]
+                actions = self.mdp.getPossibleActions(state)
+                for action in actions:
+                    self.values[state, action] = new_values[state, action]
 
 
     def getValue(self, state):
@@ -80,17 +84,14 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-
-        if (action == 'exit'):
-            possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
-            return self.mdp.getReward(state, action, possible_states[0][0])
-
         sum = 0.0
         possible_states = self.mdp.getTransitionStatesAndProbs(state, action)
         for next_state in possible_states:
-            sum = sum + next_state[1] * (self.values[next_state[0]])
+            sum = sum + next_state[1]*self.getValue(next_state[0]) + self.mdp.getReward(state, 0, 0)
 
         return sum
+
+
 
     def computeActionFromValues(self, state):
         """
